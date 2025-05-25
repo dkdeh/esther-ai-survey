@@ -19,7 +19,17 @@ Once completed, our system will generate a personalized plan and notify your sup
 
 st.header("Demographic Information")
 
-# ... (ALL SURVEY FIELDS REMAIN UNCHANGED)
+# === Sample Input Fields for Demo (include full form in real app) ===
+name = st.text_input("Name")
+city = st.text_input("City")
+dob = st.date_input("Date of Birth")
+gender = st.selectbox("Gender", ["Male", "Female", "Non-binary/Other"])
+email = st.text_input("Email Address")
+cell = st.text_input("Cell Phone Number")
+race = st.multiselect("Race/Ethnicity", [
+    "Hispanic/Latino", "White", "Black or African American", "Asian",
+    "American Indian/Alaska Native", "Native Hawaiian/Pacific Islander", "Prefer not to answer"
+])
 
 # === Helper function to send counselor notification ===
 def notify_counselor(profile_path):
@@ -27,14 +37,12 @@ def notify_counselor(profile_path):
         with open(profile_path, "r") as f:
             profile = json.load(f)
 
-        # Simulated counselor email logic (replace with actual in production)
         msg = EmailMessage()
         msg['Subject'] = f"New Student Survey Submitted: {profile.get('name', 'Unknown')}"
         msg['From'] = "no-reply@estherai.org"
         msg['To'] = "counselor@example.com"
         msg.set_content(f"A new survey was submitted. View the profile at: {profile_path}")
 
-        # This example skips sending actual email — SMTP config needed for real use
         print("Email prepared to notify counselor.")
 
     except Exception as e:
@@ -42,15 +50,23 @@ def notify_counselor(profile_path):
 
 # === Save to file and trigger post-submission flow ===
 if st.button("Submit Survey"):
-    data = locals()
+    profile = {
+        "name": name,
+        "city": city,
+        "dob": str(dob),
+        "gender": gender,
+        "email": email,
+        "cell": cell,
+        "race": race
+    }
+
     os.makedirs("data", exist_ok=True)
     profile_path = "data/esther_profile.json"
     with open(profile_path, "w") as f:
-        json.dump({k: v for k, v in data.items() if not k.startswith("st")}, f, indent=2)
+        json.dump(profile, f, indent=2)
 
     st.success("✅ Survey submitted successfully. Esther’s journey starts here!")
 
-    # === Notify Counselor and Start AI Planning ===
     notify_counselor(profile_path)
     st.info("📬 A notification has been sent to your counselor. Your AI-guided profile is being reviewed.")
     st.markdown("""
